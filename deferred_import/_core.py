@@ -4,6 +4,8 @@ import sys
 from importlib import import_module
 from logging import getLogger
 from pathlib import Path
+from types import ModuleType
+from typing import List
 
 
 logger = getLogger(__package__)
@@ -25,24 +27,13 @@ def _install(name: str) -> None:
         raise RuntimeError('cannot install package {}'.format(name))
 
 
-class cached_property:
-    """
-    A property that is only computed once per instance and then replaces itself
-    with an ordinary attribute. Deleting the attribute resets the property.
-    """
-
-    def __init__(self, func):
-        self.__doc__ = func.__doc__
-        self.func = func
-
-    def __get__(self, obj, cls):
-        if obj is None:
-            return self
-        value = obj.__dict__[self.func.__name__] = self.func(obj)
-        return value
-
-
 class LazyModule:
+    __slots__ = (
+        '_name',
+        '_package',
+        '_install',
+    )
+
     def __init__(
         self,
         name: str,
@@ -56,8 +47,7 @@ class LazyModule:
         if eager:
             self._module
 
-    @cached_property
-    def _module(self):
+    def _import(self) -> ModuleType:
         try:
             return import_module(name=self._name)
         except ImportError:
@@ -66,10 +56,14 @@ class LazyModule:
             _install(name=self._package)
         return import_module(name=self._name)
 
+    @property
+    def _module(self) -> ModuleType:
+        return sys.modules.get(self._name) or self._import()
+
     def __getattr__(self, name: str):
         return getattr(self._module, name)
 
-    def __dir__(self):
+    def __dir__(self) -> List[str]:
         return dir(self._module)
 
     def __repr__(self) -> str:
