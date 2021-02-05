@@ -1,6 +1,11 @@
 # deferred-import
 
-Lazy import and install on demand Python packages
+Lazy import and install on demand Python packages.
+
+1. Package will be loaded only when you use it in the first time. Deferring it makes module loading much faster.
+1. If module is missed, the package will be automatically installed. It allows to make some project dependencies optional and install them on demand.
+
+## Installation
 
 ```bash
 python3 -m pip install --user deferred-import
