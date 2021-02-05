@@ -17,14 +17,14 @@ def _is_global() -> bool:
 
 
 def _install(name: str) -> None:
-    logger.warning('cannot find {name}, trying to install')
+    logger.warning(f'cannot find {name}, trying to install')
     args = [sys.executable, '-m', 'pip', 'install']
     if _is_global():
         args.append('--user')
     args.append(name)
-    code = subprocess.call(args)
+    code = subprocess.call(args, stdout=subprocess.DEVNULL)
     if code != 0:
-        raise RuntimeError('cannot install package {}'.format(name))
+        raise RuntimeError(f'cannot install package {name}')
 
 
 class LazyModule:
